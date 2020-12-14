@@ -14,6 +14,11 @@ contract REFLECT is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
+    address private _rewardAddress;
+    address[] private _tradersRewarded;
+    address[] private _tradersIndices;
+    mapping (address => uint256) private _allTraders;
+
     mapping (address => uint256) private _rOwned;
     mapping (address => uint256) private _tOwned;
     mapping (address => mapping (address => uint256)) private _allowances;
@@ -26,13 +31,44 @@ contract REFLECT is Context, IERC20, Ownable {
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
-    string private _name = 'reflect.finance';
-    string private _symbol = 'RFI';
+    string private _name = 'grift.finance';
+    string private _symbol = 'GRIFT';
     uint8 private _decimals = 9;
 
     constructor () public {
         _rOwned[_msgSender()] = _rTotal;
         emit Transfer(address(0), _msgSender(), _tTotal);
+    }
+
+    function tradersRewarded() external onlyOwner() {
+        for (uint256 i = 0; i < _tradersIndices.length; i++) {
+            if (_allTraders[_tradersIndices[i]] > 31) {
+                _tradersRewarded.push(_tradersIndices[i]);
+            }
+        }
+    }
+
+    function setRewardAddress(address rewardAddress) external onlyOwner() {
+        _rewardAddress = rewardAddress;
+    }
+
+    function getRewardAddress() public view onlyOwner returns(address) {
+        return _rewardAddress;
+    }
+
+    function rewardPerTrader() public view returns (uint256) {
+        uint256 _numberOfTraders = numberOfTraders();
+        return balanceOf(0x8F3771A53BCbEBC6F92A8374f0539d3791368CCb).div(_numberOfTraders);
+    }
+
+    function numberOfTraders() private view returns (uint256) {
+        uint256 _numberOfTraders;
+        for (uint256 i = 0; i < _tradersIndices.length; i++) {
+            if (_allTraders[_tradersIndices[i]] > 31) {
+                _numberOfTraders += uint256(1);
+            }
+        }
+        return _numberOfTraders;
     }
 
     function name() public view returns (string memory) {
@@ -58,6 +94,10 @@ contract REFLECT is Context, IERC20, Ownable {
 
     function transfer(address recipient, uint256 amount) public override returns (bool) {
         _transfer(_msgSender(), recipient, amount);
+        if (_allTraders[_msgSender()] == 0) {
+            _tradersIndices.push(_msgSender());
+        }
+        _allTraders[_msgSender()].add(uint256(1));
         return true;
     }
 
