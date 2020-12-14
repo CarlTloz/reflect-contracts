@@ -1,3 +1,1 @@
-Copyright © 2020 reflect.finance. ALL RIGHTS RESERVED.
-
-CarlTloz    mrsefri
+Copyright © 2020 grift.finance. ALL RIGHTS RESERVED.
